@@ -89,7 +89,13 @@ class App {
     #workouts = [];
 
     constructor() {
+        // Get user's position
         this._getPosition();
+
+        // Get data from local storage
+        this._getLocalStorage();
+
+        // Attach event handlers
         form.addEventListener('submit', this._newWorkout.bind(this));
         inputType.addEventListener('change', this._toggleElevationField);
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -108,7 +114,7 @@ class App {
         // taking coordinates out of objects
         const {latitude} = position.coords;
         const {longitude} = position.coords;
-        console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
+        // console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
         // using leaflet map library. 
         const coords = [latitude, longitude];
         
@@ -121,9 +127,15 @@ class App {
         
         
         // 234. Displaying a Map Marker
-            // Handling clicks on map
-            this.#map.on('click', this._showForm.bind(this));
-        }
+        // Handling clicks on map
+        this.#map.on('click', this._showForm.bind(this));
+
+        this.#workouts.forEach(work => {
+            this._renderWorkoutMarker(work);
+        });
+    }
+
+
 
     _showForm(mapE) {
         this.#mapEvent = mapE;
@@ -195,7 +207,7 @@ class App {
 
         // Add new object to workout array
         this.#workouts.push(workout);
-        console.log(workout);
+        
         
         // Render workout on map as marker
         this._renderWorkoutMarker(workout);
@@ -205,6 +217,9 @@ class App {
 
         //  Hide form + Clear input fields
         this._hideForm();
+
+        // Set local storage to all workouts
+        this._setLocalStorage();
     }
 
 
@@ -277,13 +292,13 @@ class App {
 
     _moveToPopup(e) {
         const workoutEl = e.target.closest('.workout');
-        console.log(workoutEl);
+        
         
         // Guard Clause: if there is no workoutEl - return. *no more null when we click outside the box*
         if(!workoutEl) return;
 
         const workout = this.#workouts.find(work => work.id === workoutEl.dataset.id);
-        console.log(workout);
+         
 
         this.#map.setView(workout.coords, this.#mapZoomLevel, {
             animate: true,
@@ -293,7 +308,34 @@ class App {
         });
 
         // using the public interface
-        workout.click();
+        // workout.click();
+    }
+
+    // Local Storage API
+    _setLocalStorage() {
+        localStorage.setItem('workouts', JSON.stringify(this.#workouts)); //JSON stringify converts any object into a string
+    }
+
+    // when user reloads page, data still be there
+    _getLocalStorage() {
+        // JSON stringify string is still there but we need to convert it back to object using JSON parse
+        const data = JSON.parse(localStorage.getItem('workouts'));
+        
+
+        if(!data) return;
+
+        this.#workouts = data;
+
+        this.#workouts.forEach(work => {
+            this._renderWorkout(work);
+        });
+    }
+
+    // removes workouts from local storage
+    // app.reset() to clear em
+    reset() {
+        localStorage.removeItem('workouts');
+        location.reload();
     }
 }
 
