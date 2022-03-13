@@ -11,7 +11,56 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
-// 237 Refactoring for Project Architecture
+// 238 Managing Workout data: Creating Classes
+
+class Workout {
+    date = new Date();
+    // converting to string and taking last 10 number:
+    id = (Date.now() + '').slice(-10);
+
+    constructor(coords, distance, duration) {
+        this.coords = coords; // [lat, lng]
+        this.distance = distance; // in km
+        this.duration = duration; // in min
+        this.calcPace();
+    }
+
+    calcPace() {
+        // min/km
+        this.pace = this.duration / this.distance;
+        return this.pace;
+    }
+
+}
+
+class Running extends Workout {
+    constructor(coords, distance, duration, cadence) {
+        super(coords, distance, duration);
+        this.cadence = cadence;
+        this.calcSpeed();
+    }
+
+    calcSpeed() {
+        // km/h
+        this.calcSpeed = this.distance / (this.duration / 60);
+        return this.speed
+    }
+}
+
+class Cycling extends Workout {
+    constructor(coords, distance, duration, elevationGain) {
+        super(coords, distance, duration);
+        this.elevationGain = elevationGain;
+    }
+    
+}
+
+const run1 = new Running([39, -12], 5.2, 24, 179);
+const cycling1 = new Cycling([39, -12], 27, 95, 523);
+console.log(run1, cycling1);
+
+//////////////////////////////
+// APP Architecture
 
 class App {
     // Private classfields
