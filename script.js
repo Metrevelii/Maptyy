@@ -9,6 +9,7 @@ class Workout {
     date = new Date();
     // converting to string and taking last 10 number:
     id = (Date.now() + '').slice(-10);
+    clicks = 0;
 
     constructor(coords, distance, duration) {
         this.coords = coords; // [lat, lng]
@@ -24,6 +25,10 @@ class Workout {
 
         // first letter to Uppercase - August
         this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${months[this.date.getMonth()]} ${this.date.getDate()}`;
+    }
+
+    click() {
+        this.clicks++;
     }
 
 }
@@ -79,15 +84,15 @@ const inputElevation = document.querySelector('.form__input--elevation');
 class App {
     // Private classfields
     #map;
+    #mapZoomLevel = 13;
     #mapEvent;
     #workouts = [];
 
     constructor() {
         this._getPosition();
         form.addEventListener('submit', this._newWorkout.bind(this));
-        
-        
         inputType.addEventListener('change', this._toggleElevationField);
+        containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
     }
 
 
@@ -107,7 +112,7 @@ class App {
         // using leaflet map library. 
         const coords = [latitude, longitude];
         
-        this.#map = L.map('map').setView(coords, 13);
+        this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
         
         L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -222,7 +227,6 @@ class App {
 
     // 240 Rendering Workout
     _renderWorkout (workout) {
-
         let html = `
         <li class="workout workout--${workout.type}" data-id="${workout.id}">
           <h2 class="workout__title">${workout.description}</h2>
@@ -269,6 +273,27 @@ class App {
         `;
 
     form.insertAdjacentHTML('afterend', html);
+    }
+
+    _moveToPopup(e) {
+        const workoutEl = e.target.closest('.workout');
+        console.log(workoutEl);
+        
+        // Guard Clause: if there is no workoutEl - return. *no more null when we click outside the box*
+        if(!workoutEl) return;
+
+        const workout = this.#workouts.find(work => work.id === workoutEl.dataset.id);
+        console.log(workout);
+
+        this.#map.setView(workout.coords, this.#mapZoomLevel, {
+            animate: true,
+            pan: {
+                duration: 1,
+            }
+        });
+
+        // using the public interface
+        workout.click();
     }
 }
 
